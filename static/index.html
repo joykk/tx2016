@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>stellar</title>
+        <meta name="natus">
+        <script type="text/javascript" src="jquery-3.0.0.min.js"></script>
+        <script type="text/javascript" src="bootstrap.min.js"></script>
+        <script type="text/javascript" src="echarts.min.js"></script>
+        <script type="text/javascript" src="map/china.js"></script>
+        <script type="text/javascript" src="map/world.js"></script>
+        <script type="text/javascript" src="map/province/guangdong.js"></script>
+        <link href="bootstrap.min.css" rel="stylesheet">
+        <link href="bootstrap-theme.min.css" rel="stylesheet">
+
+        <link href="font-awesome.min.css" rel="stylesheet">
+        <script type="text/javascript" src="my.js"></script>
+    </head>
+
+    <body>
+        <div id="main"></div>
+        <div id="title">
+            <center>
+                <div id="time"><i class='fa fa-clock-o fa-fw'></i>00:00:00 腾讯视频观看人数</div>
+                <hr id="divide" style="height:5px;border:none;border-top:5px ridge;" />
+                <div id="count"></div>
+            </center>
+        </div>
+		<div id="top3" style="width: 350px;height:400px;"></div>
+		<script type="text/javascript">
+			var top3 = echarts.init(document.getElementById('top3'));
+			var top3option = {
+			title: {
+				text: '点播次数TOP10',
+				subtext: '十分钟内累计点击',
+				textStyle: {color: '#E1FFFF'},
+			},
+			tooltip: {
+				trigger: 'axis',
+				axisPointer: {
+					type: 'shadow'
+				}
+			},
+			xAxis: {
+				type: 'value',
+				splitLine: false,
+			},
+			yAxis: {
+				type: 'category',
+				data: [],
+			},
+			series: [
+				{
+					type: 'bar',
+					name: '点击次数',
+					itemStyle: {
+                        normal: {color: '#E1FFFF', label: {show : true, position : 'right', formatter : "{b}"}}},
+					data: []
+				},
+			]
+			};
+            time= "";
+            date = new Date();
+            hours = date.getHours()
+            minutes = date.getMinutes()
+            if (hours >= 1 && hours <= 9) {
+                hours = "0" + hours;
+            }
+            time += hours + "00"
+            function updateTop3() 
+            {
+                $.getJSON("http://119.29.97.236/china_top10/"+time,function(data){
+                    $.each(data.body, function(key, value) {
+                        top3option.series[0].data[9-key] = value.value
+                        top3option.yAxis.data[9-key] = {"value": value.name, textStyle: {color: '#646464', align: "right"}}
+                    })
+                    top3.setOption(top3option)
+                    });
+                time = eval(time) + 1
+                if ((time % 100) >= 60)
+                {
+                    time = time +100 - time % 100
+                }
+                time = (time).toString()
+            };
+            updateTop3();
+            setInterval(updateTop3, 5000);
+		</script>
+        <script type="text/javascript">
+            $('#main').css({
+              "position": "absolute",
+              "margin-left": "0px",
+              "margin-top": "0px",
+              "height": $(window).height() - 10,
+              "filter": "alpha(opacity=100)",
+              "opacity": "1",
+              "overflow": "hidden",
+              "width": $(window).width(),
+              "z-index": "999"
+            });
+            $('#title').css({
+              "position": "absolute",
+              "margin-left": $(window).width() * 2 / 5,
+              "margin-top": $(window).height() / 20,
+              "height": $(window).height() / 5,
+              "filter": "alpha(opacity=50)",
+              "opacity": "1",
+              "overflow": "hidden",
+              "z-index": "999",
+              "font-size" : $(window).height() / 40,
+              "color": "#C0C0C0",
+              "width":$(window).width() / 5,
+              "font-family": "Microsoft YaHei"
+            });
+			$('#top3').css({
+			  "position": "absolute",
+			  //"margin-left": $(window).width() * 7 / 10,
+			  //"margin-top": $(window).height() * 5 / 10,
+			  "margin-left": "0px",
+			  "margin-top": $(window).height() / 20,
+			  "filter": "alpha(opacity=50)",
+			  "opacity": "1",
+			  "z-index": "999",
+			  "font-size" : $(window).height(),
+			  "font-family": "Microsoft YaHei"
+			});
+
+
+            //getTime_all ();
+            var myDate = new Date();
+			
+            init (myDate.getHours(), myDate.getMinutes(), myDate.getSeconds());
+			
+            var myChart = echarts.init(document.getElementById('main'));
+
+            var option = {
+                backgroundColor: '#646464',
+                title: {
+                    x:'center',
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function (params) {
+                        return "实时观看人数(" + params.name + ') : ' + params.value[2];
+                    }
+                },
+                legend: {
+                    orient: 'vertical',
+                    y: 'bottom',
+                    x:'right',
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                visualMap: {
+                    min: 0,
+                    max: 1000,
+                    calculable: true,
+                    inRange: {
+                        color: ['#50a3ba', '#eac736', '#d94e5d']
+                    },
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                geo: {
+                    map: 'china',
+                    label: {
+                        emphasis: {
+                            show: false
+                        }
+                    },
+                    itemStyle: {
+                        normal: {
+                            areaColor: '#323c48',
+                            borderColor: '#111'
+                        },
+                        emphasis: {
+                            areaColor: '#2a333d'
+                        }
+
+                    }
+                },
+                series: [
+                    {
+                        name: '观众数量',
+                        type: 'scatter',
+                        coordinateSystem: 'geo',
+                        data: convertData(
+                            g_dispData
+                        ),
+                        symbol:'diamond',
+                        symbolSize: function (val) {
+                            return Math.min(8, Math.max(5, val[2] / 200.0));
+                        },
+                        label: {
+                            normal: {
+                                show: false
+                            },
+                            emphasis: {
+                                show: false
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                shadowBlur: 2,
+                                shadowColor: 'rgba(255, 255, 255, 0.8)',
+                                color: 'rgba(255, 255, 255, 0.8)'
+                            },
+                            emphasis: {
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            }
+                        },
+                        zrender:1
+                    },
+                    {
+                        name: '闪光处',
+                        type: 'scatter',
+                        coordinateSystem: 'geo',
+                        data: convertData(
+                            g_dispData
+                        ),
+                        symbol:'circle',
+                        symbolSize: 1,
+                        label: {
+                            normal: {
+                                show: false
+                            },
+                            emphasis: {
+                                show: false
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                borderColor: '#fff',
+                                borderWidth: 5,
+                            }
+                        }
+                    }
+                ]
+            };
+
+            setInterval(function () {
+				getData ();
+                getSubTitle ();
+				getTime_nowMin();
+				myChart.setOption ({
+					series: [
+						{
+                            name: '观众数量',
+							data: convertData(
+								g_dispData
+							)
+						},
+                        {
+                            name: '闪光处',
+							data: convertData(
+								g_blinkData
+							)
+						},
+					]
+				});
+				//zxy
+				myChart.setOption ({
+					baseOption: {
+						timeline: {
+							axisType: 'category',
+							autoPlay: true,
+							loop:true,
+							symbol:'none',
+							playInterval: 1000,
+							data: total_time,
+							lineStyle:{
+								color:'#555'
+							},
+							label: {
+								normal:{
+									textStyle:{
+										color:'#999'
+									}
+								},
+								interval:total_time.length - 2
+							},
+							checkpointStyle: {
+								color: '#bbb',
+								borderColor: '#777',
+								borderWidth: 2
+							},
+							itemStyle: {
+								normal: {
+									borderColor:'#ff0'
+								},
+								emphasis: {
+									areaColor: '#2a333d'
+								}
+							},
+							controlStyle:{
+								showNextBtn: false,
+								showPrevBtn: false,
+								showPlayBtn: false,
+								normal:{
+									color:'#666',
+									borderColor:'#666'
+								}
+							},
+						},
+						
+					}
+					//zxy
+				});
+                update ();
+                var killer = setInterval(function () {
+                    document.getElementById ("time").innerHTML = g_subTitle;
+                    document.getElementById ("count").innerHTML = g_count;
+                    myChart.setOption ({
+    					series: [
+                            {
+                                name: '闪光处',
+    							data: ([]
+    							)
+    						},
+    					]
+    				});
+                    clearInterval (killer);
+                }, 200);
+            }, 1000);
+
+			myChart.on('timelinechanged', function (params) { 
+				getSubTitle_sec(total_time[params.currentIndex]);
+				document.getElementById ("time").innerHTML = g_subTitle;
+                document.getElementById ("count").innerHTML = g_count;
+            });
+
+            myChart.setOption (option);
+		
+
+            myChart.on('mouseover', function (params) {
+
+            });
+
+            $(window).resize(function (){
+                $("#main").width ($(window).width());
+                $("#main").height ($(window).height());
+                setTimeout (function () {
+                    myChart.resize ();
+                }, 100);
+            });
+        </script>
+    </body>
+</html>
